@@ -13,4 +13,4 @@ gradle build --info
 - local Postgres
 
 ## run
-java -jar build\libs\chat-gateway-1.0-SNAPSHOT.jar
+java -jar build/libs/chat-gateway-1.0-SNAPSHOT.jar
