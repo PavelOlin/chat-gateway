@@ -1,0 +1,25 @@
+databaseChangeLog:
+- changeSet:
+    id: 2020-02-29_1
+    author: pavel
+    changes:
+    - sql:
+        CREATE TABLE queue(
+            id BIGSERIAL PRIMARY KEY,
+            payload VARCHAR(256) NOT NULL,
+            added_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            locked_until TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+- changeSet:
+    id: 2020-02-29-2
+    author: pavel
+    changes:
+    - sql:
+        CREATE TABLE conversation_messages(
+            id BIGSERIAL PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            conversation_id BIGINT NOT NULL,
+            send_timestamp TIMESTAMP NOT NULL,
+            encoded_message VARCHAR(100) NOT NULL,
+            client_ip VARCHAR(15) NOT NULL
+        );
