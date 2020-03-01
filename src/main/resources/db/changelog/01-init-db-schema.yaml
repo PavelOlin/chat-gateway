@@ -6,9 +6,11 @@ databaseChangeLog:
     - sql:
         CREATE TABLE queue(
             id BIGSERIAL PRIMARY KEY,
+            queue_type INT NOT NULL default 0,
             payload VARCHAR(256) NOT NULL,
             added_timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            locked_until TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            locked_until TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            retries INT NOT NULL default 0
         );
 - changeSet:
     id: 2020-02-29-2

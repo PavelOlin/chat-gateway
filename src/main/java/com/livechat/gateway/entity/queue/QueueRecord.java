@@ -2,9 +2,11 @@ package com.livechat.gateway.entity.queue;
 
 public class QueueRecord {
     private long id;
+    private QueueType type;
     private String payload;
     private long addedTimestamp;
     private long lockedUntil;
+    private int retries;
 
     public long getId() {
         return id;
@@ -36,5 +38,21 @@ public class QueueRecord {
 
     public void setLockedUntil(long lockedUntil) {
         this.lockedUntil = lockedUntil;
+    }
+
+    public QueueType getType() {
+        return type;
+    }
+
+    public void setType(QueueType type) {
+        this.type = type;
+    }
+
+    public int getRetries() {
+        return retries;
+    }
+
+    public void setRetries(int retries) {
+        this.retries = retries;
     }
 }

@@ -1,6 +1,7 @@
 package com.livechat.gateway.service.queue.db;
 
 import com.livechat.gateway.entity.queue.QueueRecord;
+import com.livechat.gateway.entity.queue.QueueType;
 import com.livechat.gateway.service.queue.IQueueService;
 import com.livechat.gateway.service.queue.QueueMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +28,8 @@ public class DbQueueService implements IQueueService {
     }
 
     @Override
-    public void sendMessages(List<String> messages) {
-        queueStorage.saveRecords(messages);
+    public void sendMessages(QueueType queueType, List<String> messages) {
+        queueStorage.saveRecords(queueType, messages);
     }
 
     @Override
@@ -38,8 +39,8 @@ public class DbQueueService implements IQueueService {
 
     @Transactional
     @Override
-    public List<QueueMessage> receiveMessages(int count) {
-        List<QueueRecord> records = queueStorage.readRecords(count);
+    public List<QueueMessage> receiveMessages(QueueType queueType, int count) {
+        List<QueueRecord> records = queueStorage.readRecords(queueType, count);
         List<Long> ids = new ArrayList<>(records.size());
         List<QueueMessage> messages = new ArrayList<>(records.size());
         for (QueueRecord record: records) {

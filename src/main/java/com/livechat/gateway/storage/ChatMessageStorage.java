@@ -55,7 +55,7 @@ public class ChatMessageStorage {
         return jdbcTemplate.query("SELECT id, user_id, chat_id, send_timestamp, encoded_message, client_ip " +
                 "FROM chat_messages " +
                 "WHERE chat_id = ? AND id < ?" +
-                "ORDER BY send_timestamp " +
+                "ORDER BY send_timestamp DESC " +
                 "LIMIT ?",
                 rowMapper(), conversationId, fromMessageId, count);
     }

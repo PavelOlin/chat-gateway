@@ -1,6 +1,7 @@
 package com.livechat.gateway.storage.queue;
 
 import com.livechat.gateway.entity.queue.QueueRecord;
+import com.livechat.gateway.entity.queue.QueueType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -26,14 +27,15 @@ public class QueueStorage {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void saveRecords(List<String> messages) {
+    public void saveRecords(QueueType type, List<String> messages) {
         if (messages.isEmpty()) {
             return;
         }
-        jdbcTemplate.batchUpdate("INSERT INTO queue (payload) VALUES (?)", new BatchPreparedStatementSetter() {
+        jdbcTemplate.batchUpdate("INSERT INTO queue (queue_type, payload) VALUES (?,?)", new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setString(1, messages.get(i));
+                ps.setInt(1, type.getValue());
+                ps.setString(2, messages.get(i));
             }
 
             @Override
@@ -50,11 +52,11 @@ public class QueueStorage {
         jdbcTemplate.update("DELETE FROM queue WHERE id IN (" + getCommaSeparatedQuotes(ids) + ")", ids.toArray());
     }
 
-    public List<QueueRecord> readRecords(int count) {
+    public List<QueueRecord> readRecords(QueueType queueType, int count) {
         validateCount(count);
-        return jdbcTemplate.query("SELECT id, payload, added_timestamp, locked_until FROM queue " +
-                        "WHERE locked_until < current_timestamp " +
-                        "ORDER BY added_timestamp LIMIT ?", rowMapper(), count);
+        return jdbcTemplate.query("SELECT id, queue_type, payload, added_timestamp, locked_until, retries FROM queue " +
+                        "WHERE locked_until < current_timestamp AND queue_type = ?" +
+                        "ORDER BY added_timestamp LIMIT ?", rowMapper(), queueType.getValue(), count);
     }
 
     public void lockRecordsForRead(long secondsToLock, List<Long> ids) {
@@ -66,7 +68,7 @@ public class QueueStorage {
         params.add(secondsToLock);
         params.addAll(ids);
         jdbcTemplate.update("UPDATE queue " +
-                        "SET locked_until = current_timestamp  + (? * interval '1 second') " +
+                        "SET locked_until = current_timestamp  + (? * interval '1 second'), retries = retries + 1 " +
                         "WHERE id IN (" + getCommaSeparatedQuotes(ids) + ")",
                 params.toArray());
     }
@@ -88,9 +90,11 @@ public class QueueStorage {
         return (rs, rowNum) -> {
             QueueRecord record = new QueueRecord();
             record.setId(rs.getLong("id"));
+            record.setType(QueueType.getByValue(rs.getInt("queue_type")));
             record.setPayload(rs.getString("payload"));
             record.setAddedTimestamp(rs.getTimestamp("added_timestamp").getTime());
             record.setLockedUntil(rs.getTimestamp("locked_until").getTime());
+            record.setRetries(rs.getInt("retries"));
             return record;
         };
     }

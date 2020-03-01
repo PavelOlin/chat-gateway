@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.livechat.gateway.dto.ChatMessageDto;
 import com.livechat.gateway.dto.PostMessageRequest;
 import com.livechat.gateway.entity.ChatMessage;
+import com.livechat.gateway.entity.queue.QueueType;
 import com.livechat.gateway.service.queue.IQueueService;
 import com.livechat.gateway.storage.ChatMessageStorage;
 import com.livechat.gateway.transformer.ChatMessageTransformer;
@@ -46,7 +47,7 @@ public class ChatApiService {
             throw new RuntimeException("Unexpected payload size " + payload.length() + ", expected up to " + PAYLOAD_MAX_SIZE);
         }
         logger.debug("Post message: {}", payload);
-        queueService.sendMessage(payload);
+        queueService.sendMessage(QueueType.CHAT_POST_MESSAGE, payload);
     }
 
     public List<ChatMessageDto> readMessages(long userId, long conversationId, long fromMessageId, long count) {

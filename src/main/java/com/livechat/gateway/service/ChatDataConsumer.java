@@ -2,6 +2,7 @@ package com.livechat.gateway.service;
 
 import com.google.gson.Gson;
 import com.livechat.gateway.entity.ChatMessage;
+import com.livechat.gateway.entity.queue.QueueType;
 import com.livechat.gateway.service.queue.IQueueService;
 import com.livechat.gateway.service.queue.QueueMessage;
 import com.livechat.gateway.storage.ChatMessageStorage;
@@ -69,7 +70,7 @@ public class ChatDataConsumer {
     private int consume() {
         long startTime = System.currentTimeMillis();
         logger.debug("Consuming records from queue...");
-        List<QueueMessage> messages = queueService.receiveMessages(batchSize);
+        List<QueueMessage> messages = queueService.receiveMessages(QueueType.CHAT_POST_MESSAGE, batchSize);
         if (messages.isEmpty()) {
             return 0;
         }
