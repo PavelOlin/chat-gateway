@@ -15,11 +15,29 @@ databaseChangeLog:
     author: pavel
     changes:
     - sql:
-        CREATE TABLE conversation_messages(
+        CREATE TABLE chat_messages(
             id BIGSERIAL PRIMARY KEY,
             user_id BIGINT NOT NULL,
-            conversation_id BIGINT NOT NULL,
+            chat_id BIGINT NOT NULL,
             send_timestamp TIMESTAMP NOT NULL,
             encoded_message VARCHAR(100) NOT NULL,
-            client_ip VARCHAR(15) NOT NULL
+            client_ip VARCHAR(45) NOT NULL
         );
+- changeSet:
+    id: 2020-02-29-3
+    author: pavel
+    changes:
+    - sql:
+        CREATE INDEX idx_chatmessages_chat_id ON chat_messages USING hash (chat_id);
+- changeSet:
+    id: 2020-02-29-4
+    author: pavel
+    changes:
+    - sql:
+        CREATE INDEX idx_chatmessages_send_timestamp ON chat_messages (send_timestamp);
+- changeSet:
+    id: 2020-02-29-5
+    author: pavel
+    changes:
+    - sql:
+        CREATE INDEX idx_queue_locked_until ON queue (locked_until);

@@ -1,23 +1,23 @@
-package com.livechat.gateway.api.entity.chat;
+package com.livechat.gateway.entity;
 
-public class ConversationMessage {
+public class ChatMessage {
     private long id;
-    private long conversationId;
+    private long chatId;
     private long userId;
     private String clientIp;
     private long timestamp;
     private String encodedMessage;
 
-    public ConversationMessage() {}
+    public ChatMessage() {}
 
-    public ConversationMessage(long userId, long conversationId, String clientIp, long timestamp, String encodedMessage) {
-        this(0, userId, conversationId, clientIp, timestamp, encodedMessage);
+    public ChatMessage(long userId, long chatId, String clientIp, long timestamp, String encodedMessage) {
+        this(0, userId, chatId, clientIp, timestamp, encodedMessage);
     }
 
-    public ConversationMessage(long id, long userId, long conversationId, String clientIp, long timestamp, String encodedMessage) {
+    public ChatMessage(long id, long userId, long chatId, String clientIp, long timestamp, String encodedMessage) {
         this.id = id;
         this.userId = userId;
-        this.conversationId = conversationId;
+        this.chatId = chatId;
         this.clientIp = clientIp;
         this.timestamp = timestamp;
         this.encodedMessage = encodedMessage;
@@ -63,11 +63,11 @@ public class ConversationMessage {
         this.encodedMessage = encodedMessage;
     }
 
-    public long getConversationId() {
-        return conversationId;
+    public long getChatId() {
+        return chatId;
     }
 
-    public void setConversationId(long conversationId) {
-        this.conversationId = conversationId;
+    public void setChatId(long chatId) {
+        this.chatId = chatId;
     }
 }

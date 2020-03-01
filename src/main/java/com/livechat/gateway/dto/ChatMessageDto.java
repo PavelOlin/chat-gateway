@@ -1,8 +1,7 @@
-package com.livechat.gateway.api.controller.dto;
+package com.livechat.gateway.dto;
 
-public class ChatMessage {
+public class ChatMessageDto {
     private long id;
-    private long conversationId;
     private long userId;
     private String clientIp;
     private long timestamp;
@@ -15,14 +14,6 @@ public class ChatMessage {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    public long getConversationId() {
-        return conversationId;
-    }
-
-    public void setConversationId(long conversationId) {
-        this.conversationId = conversationId;
     }
 
     public long getUserId() {

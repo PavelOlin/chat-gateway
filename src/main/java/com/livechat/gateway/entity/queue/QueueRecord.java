@@ -1,4 +1,4 @@
-package com.livechat.gateway.api.entity.queue;
+package com.livechat.gateway.entity.queue;
 
 public class QueueRecord {
     private long id;

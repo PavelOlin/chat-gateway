@@ -1,10 +1,10 @@
-package com.livechat.gateway.consumer.service;
+package com.livechat.gateway.service;
 
 import com.google.gson.Gson;
-import com.livechat.gateway.api.entity.chat.ConversationMessage;
-import com.livechat.gateway.api.service.queue.IQueueService;
-import com.livechat.gateway.api.service.queue.QueueMessage;
-import com.livechat.gateway.api.storage.chat.ConversationMessageStorage;
+import com.livechat.gateway.entity.ChatMessage;
+import com.livechat.gateway.service.queue.IQueueService;
+import com.livechat.gateway.service.queue.QueueMessage;
+import com.livechat.gateway.storage.ChatMessageStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,12 +33,12 @@ public class ChatDataConsumer {
 
     private final IQueueService queueService;
 
-    private final ConversationMessageStorage conversationMessageStorage;
+    private final ChatMessageStorage chatMessageStorage;
 
     @Autowired
-    public ChatDataConsumer(IQueueService queueService, ConversationMessageStorage conversationMessageStorage) {
+    public ChatDataConsumer(IQueueService queueService, ChatMessageStorage chatMessageStorage) {
         this.queueService = queueService;
-        this.conversationMessageStorage = conversationMessageStorage;
+        this.chatMessageStorage = chatMessageStorage;
     }
 
     @PostConstruct
@@ -74,22 +74,22 @@ public class ChatDataConsumer {
             return 0;
         }
         List<Long> ids = new ArrayList<>(messages.size());
-        List<ConversationMessage> messagesToSave = new ArrayList<>(messages.size());
+        List<ChatMessage> messagesToSave = new ArrayList<>(messages.size());
         Gson gson = new Gson();
         for (QueueMessage qm: messages) {
             ids.add(qm.getId());
-            ConversationMessage cm = transform(gson, qm);
+            ChatMessage cm = deserialize(gson, qm);
             messagesToSave.add(cm);
         }
 
-        conversationMessageStorage.save(messagesToSave);
+        chatMessageStorage.save(messagesToSave);
 
         queueService.deleteMessages(ids);
         logger.debug("Consumed {} messages in {} ms", messages.size(), System.currentTimeMillis() - startTime);
         return messages.size();
     }
 
-    private static ConversationMessage transform(Gson gson, QueueMessage queueMessage) {
-        return gson.fromJson(queueMessage.getMessage(), ConversationMessage.class);
+    private static ChatMessage deserialize(Gson gson, QueueMessage queueMessage) {
+        return gson.fromJson(queueMessage.getMessage(), ChatMessage.class);
     }
 }

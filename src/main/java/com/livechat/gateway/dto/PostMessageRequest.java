@@ -1,4 +1,4 @@
-package com.livechat.gateway.api.controller.dto;
+package com.livechat.gateway.dto;
 
 public class PostMessageRequest {
     private String message;

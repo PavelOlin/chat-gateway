@@ -1,9 +1,10 @@
-package com.livechat.gateway.api.storage.queue;
+package com.livechat.gateway.storage.queue;
 
-import com.livechat.gateway.api.entity.queue.QueueRecord;
+import com.livechat.gateway.entity.queue.QueueRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
@@ -14,6 +15,9 @@ import java.util.stream.Collectors;
 
 @Repository
 public class QueueStorage {
+    private static final int READ_RECORDS_COUNT_MIN = 1;
+    private static final int READ_RECORDS_COUNT_MAX = 100;
+    private static final long SECONDS_TO_LOCK_MIN = 30;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -47,26 +51,14 @@ public class QueueStorage {
     }
 
     public List<QueueRecord> readRecords(int count) {
-        if (count < 0 || count > 100) {
-            throw new IllegalArgumentException("Count must be in range from 0 to 100");
-        }
+        validateCount(count);
         return jdbcTemplate.query("SELECT id, payload, added_timestamp, locked_until FROM queue " +
                         "WHERE locked_until < current_timestamp " +
-                        "ORDER BY added_timestamp LIMIT ?",
-                (rs, rowNum) -> {
-                    QueueRecord record = new QueueRecord();
-                    record.setId(rs.getLong("id"));
-                    record.setPayload(rs.getString("payload"));
-                    record.setAddedTimestamp(rs.getTimestamp("added_timestamp").getTime());
-                    record.setLockedUntil(rs.getTimestamp("locked_until").getTime());
-                    return record;
-        }, count);
+                        "ORDER BY added_timestamp LIMIT ?", rowMapper(), count);
     }
 
     public void lockRecordsForRead(long secondsToLock, List<Long> ids) {
-        if (secondsToLock < 10) {
-            throw new IllegalArgumentException("secondsToLock must be >= 10 seconds");
-        }
+        validateSecondsToLock(secondsToLock);
         if (ids.isEmpty()) {
             return;
         }
@@ -77,7 +69,30 @@ public class QueueStorage {
                         "SET locked_until = current_timestamp  + (? * interval '1 second') " +
                         "WHERE id IN (" + getCommaSeparatedQuotes(ids) + ")",
                 params.toArray());
+    }
 
+    private static void validateCount(long count) {
+        if (count < READ_RECORDS_COUNT_MIN || count > READ_RECORDS_COUNT_MAX) {
+            throw new IllegalArgumentException(String.format("Count must be from %d to %d",
+                    READ_RECORDS_COUNT_MIN, READ_RECORDS_COUNT_MAX));
+        }
+    }
+
+    private static void validateSecondsToLock(long secondsToLock) {
+        if (secondsToLock < SECONDS_TO_LOCK_MIN) {
+            throw new IllegalArgumentException("secondsToLock must be >= " + SECONDS_TO_LOCK_MIN + " seconds");
+        }
+    }
+
+    private static RowMapper<QueueRecord> rowMapper() {
+        return (rs, rowNum) -> {
+            QueueRecord record = new QueueRecord();
+            record.setId(rs.getLong("id"));
+            record.setPayload(rs.getString("payload"));
+            record.setAddedTimestamp(rs.getTimestamp("added_timestamp").getTime());
+            record.setLockedUntil(rs.getTimestamp("locked_until").getTime());
+            return record;
+        };
     }
 
     private static String getCommaSeparatedQuotes(List<Long> ids) {

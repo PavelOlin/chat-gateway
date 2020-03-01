@@ -1,4 +1,4 @@
-package com.livechat.gateway.api.service.queue;
+package com.livechat.gateway.service.queue;
 
 public class QueueMessage {
     private long id;

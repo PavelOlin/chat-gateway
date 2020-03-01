@@ -1,13 +1,13 @@
-package com.livechat.gateway.api.service.queue.db;
+package com.livechat.gateway.service.queue.db;
 
-import com.livechat.gateway.api.entity.queue.QueueRecord;
-import com.livechat.gateway.api.service.queue.IQueueService;
-import com.livechat.gateway.api.service.queue.QueueMessage;
+import com.livechat.gateway.entity.queue.QueueRecord;
+import com.livechat.gateway.service.queue.IQueueService;
+import com.livechat.gateway.service.queue.QueueMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.livechat.gateway.api.storage.queue.QueueStorage;
+import com.livechat.gateway.storage.queue.QueueStorage;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ public class DbQueueService implements IQueueService {
 
     private final QueueStorage queueStorage;
 
-    @Value("${dbQueueService.secondsToLock:120}")
+    @Value("${dbQueueService.secondsToLock:300}")
     private Long secondsToLock;
 
     @Autowired
