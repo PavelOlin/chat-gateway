@@ -20,7 +20,7 @@ public class ChatMessageTransformer implements IDtoEntityTransformer<ChatMessage
         chatMessageDto.setTimestamp(entity.getTimestamp());
         chatMessageDto.setEncodedMessage(entity.getEncodedMessage());
 
-        // and probably more fields joined from User table
+        // probably something else here with info about chat and users
         return chatMessageDto;
     }
 }
