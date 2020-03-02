@@ -5,7 +5,6 @@ import com.livechat.gateway.entity.queue.QueueType;
 import com.livechat.gateway.service.queue.IQueueService;
 import com.livechat.gateway.service.queue.QueueMessage;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.livechat.gateway.storage.queue.QueueStorage;
@@ -18,9 +17,6 @@ import java.util.List;
 public class DbQueueService implements IQueueService {
 
     private final QueueStorage queueStorage;
-
-    @Value("${dbQueueService.secondsToLock:300}")
-    private Long secondsToLock;
 
     @Autowired
     public DbQueueService(QueueStorage queueStorage) {
@@ -39,7 +35,7 @@ public class DbQueueService implements IQueueService {
 
     @Transactional
     @Override
-    public List<QueueMessage> receiveMessages(QueueType queueType, int count) {
+    public List<QueueMessage> receiveMessages(QueueType queueType, long secondsToLock, int count) {
         List<QueueRecord> records = queueStorage.readRecords(queueType, count);
         List<Long> ids = new ArrayList<>(records.size());
         List<QueueMessage> messages = new ArrayList<>(records.size());

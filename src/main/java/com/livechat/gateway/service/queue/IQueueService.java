@@ -8,7 +8,7 @@ import java.util.List;
 public interface IQueueService {
     void sendMessages(QueueType queueType, List<String> messages);
     void deleteMessages(List<Long> messageIds);
-    List<QueueMessage> receiveMessages(QueueType queueType, int count);
+    List<QueueMessage> receiveMessages(QueueType queueType, long secondsToLock, int count);
 
     default void sendMessage(QueueType queueType, String message) {
         sendMessages(queueType, Collections.singletonList(message));
@@ -16,7 +16,7 @@ public interface IQueueService {
     default void deleteMessage(long messageId) {
         deleteMessages(Collections.singletonList(messageId));
     }
-    default QueueMessage receiveMessage(QueueType queueType) {
-        return receiveMessages(queueType, 1).get(0);
+    default QueueMessage receiveMessage(QueueType queueType, long secondsToLock) {
+        return receiveMessages(queueType, secondsToLock,1).get(0);
     }
 }

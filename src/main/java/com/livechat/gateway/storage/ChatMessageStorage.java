@@ -16,9 +16,6 @@ import java.util.List;
 @Repository
 public class ChatMessageStorage {
 
-    private final static int READ_MESSAGES_COUNT_MIN = 1;
-    private final static int READ_MESSAGES_COUNT_MAX = 100;
-
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
@@ -46,25 +43,12 @@ public class ChatMessageStorage {
     }
 
     public List<ChatMessage> readMessages(long conversationId, long fromMessageId, long count) {
-        validateCount(count);
-
-        if (fromMessageId == 0) {
-            fromMessageId = Long.MAX_VALUE;
-        }
-
         return jdbcTemplate.query("SELECT id, user_id, chat_id, send_timestamp, encoded_message, client_ip " +
                 "FROM chat_messages " +
                 "WHERE chat_id = ? AND id < ?" +
                 "ORDER BY send_timestamp DESC " +
                 "LIMIT ?",
                 rowMapper(), conversationId, fromMessageId, count);
-    }
-
-    private static void validateCount(long count) {
-        if (count < READ_MESSAGES_COUNT_MIN || count > READ_MESSAGES_COUNT_MAX) {
-            throw new IllegalArgumentException(String.format("Count must be from %d to %d",
-                    READ_MESSAGES_COUNT_MIN, READ_MESSAGES_COUNT_MAX));
-        }
     }
 
     private static void writeTo(PreparedStatement ps, ChatMessage message) throws SQLException {

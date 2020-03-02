@@ -2,6 +2,7 @@ package com.livechat.gateway.storage.queue;
 
 import com.livechat.gateway.entity.queue.QueueRecord;
 import com.livechat.gateway.entity.queue.QueueType;
+import com.livechat.gateway.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -75,14 +76,14 @@ public class QueueStorage {
 
     private static void validateCount(long count) {
         if (count < READ_RECORDS_COUNT_MIN || count > READ_RECORDS_COUNT_MAX) {
-            throw new IllegalArgumentException(String.format("Count must be from %d to %d",
+            throw new IllegalArgumentException(String.format("QueueStorage: Count must be from %d to %d",
                     READ_RECORDS_COUNT_MIN, READ_RECORDS_COUNT_MAX));
         }
     }
 
     private static void validateSecondsToLock(long secondsToLock) {
         if (secondsToLock < SECONDS_TO_LOCK_MIN) {
-            throw new IllegalArgumentException("secondsToLock must be >= " + SECONDS_TO_LOCK_MIN + " seconds");
+            throw new IllegalArgumentException("QueueStorage: secondsToLock must be >= " + SECONDS_TO_LOCK_MIN + " seconds");
         }
     }
 

@@ -21,16 +21,28 @@ import java.util.List;
 @DependsOn("liquibase")
 public class ChatDataConsumer {
 
-    private static final Logger logger = LoggerFactory.getLogger(ChatDataConsumer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChatDataConsumer.class);
 
-    @Value("${dataConsumer.numThreads:2}")
+    private static final int NUM_THREADS_MIN = 0;
+    private static final int NUM_THREADS_MAX = 20;
+    private static final int BATCH_SIZE_MIN = 1;
+    private static final int BATCH_SIZE_MAX = 100;
+    private static final int ITERATION_DELAY_MS_MIN = 10;
+    private static final int ITERATION_DELAY_MS_MAX = 60 * 1000;
+    private static final int SECONDS_TO_LOCK_MIN = 2 * 60;
+    private static final int SECONDS_TO_LOCK_MAX = 2 * 60 * 60;
+
+    @Value("${chatDataConsumer.numThreads:2}")
     private int numThreads;
 
-    @Value("${dataConsumer.batchSize:10}")
+    @Value("${chatDataConsumer.batchSize:10}")
     private int batchSize;
 
-    @Value("${dataConsumer.iterationDelayMs:1000}")
+    @Value("${chatDataConsumer.iterationDelayMs:1000}")
     private long iterationDelayMs;
+
+    @Value("${chatDataConsumer.secondsToLock:300}")
+    private long secondsToLock;
 
     private final IQueueService queueService;
 
@@ -44,11 +56,30 @@ public class ChatDataConsumer {
 
     @PostConstruct
     void init() {
+        validateConfigParams();
+        if (numThreads == 0) {
+            LOGGER.warn("Consumer was disabled");
+            return;
+        }
+
         for (int i = 0; i < numThreads; i++) {
             Thread thread = new Thread(this::consumeLoop);
-            thread.setName("DataConsumer-" + i);
+            thread.setName(ChatDataConsumer.class.getSimpleName() + "-" + i);
             thread.setDaemon(true);
             thread.start();
+        }
+    }
+
+    private void validateConfigParams() {
+        validateConfigParamRange(numThreads,  "numThreads", NUM_THREADS_MIN, NUM_THREADS_MAX);
+        validateConfigParamRange(batchSize,  "batchSize", BATCH_SIZE_MIN, BATCH_SIZE_MAX);
+        validateConfigParamRange(iterationDelayMs,  "iterationDelayMs", ITERATION_DELAY_MS_MIN, ITERATION_DELAY_MS_MAX);
+        validateConfigParamRange(secondsToLock,  "secondsToLock", SECONDS_TO_LOCK_MIN, SECONDS_TO_LOCK_MAX);
+    }
+
+    private void validateConfigParamRange(long actualValue, String name, long minValue, long maxValue) {
+        if (actualValue < minValue || actualValue > maxValue) {
+            throw new RuntimeException(String.format("Config property 'chatDataConsumer.%s' should be from %d to %d", name, minValue, maxValue));
         }
     }
 
@@ -61,16 +92,16 @@ public class ChatDataConsumer {
                 }
             }
         } catch (InterruptedException e) {
-            logger.warn("Thread was interrupted");
+            LOGGER.warn("Thread was interrupted");
         } catch (Exception e) {
-            logger.error("Got unhandled exception during consume chat data from queue", e);
+            LOGGER.error("Got unhandled exception during consume chat data from queue", e);
         }
     }
 
     private int consume() {
         long startTime = System.currentTimeMillis();
-        logger.debug("Consuming records from queue...");
-        List<QueueMessage> messages = queueService.receiveMessages(QueueType.CHAT_POST_MESSAGE, batchSize);
+        LOGGER.debug("Consuming records from queue...");
+        List<QueueMessage> messages = queueService.receiveMessages(QueueType.CHAT_POST_MESSAGE, secondsToLock, batchSize);
         if (messages.isEmpty()) {
             return 0;
         }
@@ -86,7 +117,7 @@ public class ChatDataConsumer {
         chatMessageStorage.save(messagesToSave);
 
         queueService.deleteMessages(ids);
-        logger.debug("Consumed {} messages in {} ms", messages.size(), System.currentTimeMillis() - startTime);
+        LOGGER.debug("Consumed {} messages in {} ms", messages.size(), System.currentTimeMillis() - startTime);
         return messages.size();
     }
 
